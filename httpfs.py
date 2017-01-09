@@ -84,6 +84,10 @@ if __name__ == '__main__':
     p.add_argument("--debug", action="store_true", help="Enable debug logging")
     p.add_argument("--nothreads", action="store_true", help="Disable fuse threads")
     p.add_argument("--no_ssl_verify", action="store_true", help="Disable SSL Verification")
+    p.add_argument("--allow_other", action="store_true", help="Allow users other than the one running the command"
+                                                              "to access the directory.")
+
+    p.add_argument("-o", type=str, default="", help="Mount-style variant of the above options (e.g. -o debug,allow_other")
 
     args = vars(p.parse_args(sys.argv[1:]))
 
@@ -93,8 +97,18 @@ if __name__ == '__main__':
     fuse_kwargs = {
         'nothreads': True if args.pop("nothreads") else False,
         'foreground': True if args.pop("foreground") else False,
-        'debug': True if args.pop("debug") else False
+        'debug': True if args.pop("debug") else False,
+        'allow_other': True if args.pop("allow_other") else False,
     }
+
+    o_args_list = [x.strip() for x in args.pop("o").split(",")]
+    o_args = {}
+    for x in o_args_list:
+        xs = [y.strip() for y in x.split("=")]
+        if len(xs) > 1:
+            fuse_kwargs[xs[0]] = xs[1:]
+        else:
+            fuse_kwargs[x] = True
 
     if fuse_kwargs['debug']:
         logging.basicConfig(level=logging.DEBUG, format=FORMAT)
