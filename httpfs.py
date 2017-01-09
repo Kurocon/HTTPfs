@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import sys
 import logging
-from logging.config import fileConfig
-from string import strip
-
 import requests
-from fuse import FUSE, Operations, FuseOSError, ENOENT
+import six
 
+from logging.config import fileConfig
+
+from fuse import FUSE, Operations, FuseOSError, ENOENT
 from parser import Directory, File
 
 
@@ -20,27 +20,30 @@ class HTTPfs(Operations):
         self.session = requests.Session()
 
     def readdir(self, path, fh):
-        path = strip(path, "/")
-        path = path.encode("utf-8")
-        self.log.debug("[READDIR] Reading path {}".format(path))
+        path = path.strip("/")
+        path = six.text_type(path)
+
+        self.log.debug(u"[READDIR] Reading path {}".format(path))
         if path not in self.readdir_cache.keys():
             self.readdir_cache[path] = Directory(self.root, path, self.session).contents()
 
         return [x[0] for x in self.readdir_cache[path]]
 
     def read(self, path, length, offset, fh):
-        path = strip(path, "/")
-        path = path.encode("utf-8")
-        self.log.debug("[READ] Reading path {}, {} bytes from {}".format(path, length, offset))
+        path = path.strip("/")
+        path = six.text_type(path)
+
+        self.log.debug(u"[READ] Reading path {}, {} bytes from {}".format(path, length, offset))
         if path not in self.file_cache.keys():
             self.file_cache[path] = File(self.root, path, self, self.session)
 
         return self.file_cache[path].read(length, offset)
 
     def getattr(self, path, fh=None):
-        path = strip(path, "/")
-        path = path.encode("utf-8")
-        self.log.debug("[GETATTR] Path {}. Fh {}".format(path, fh))
+        path = path.strip("/")
+        path = six.text_type(path)
+
+        self.log.debug(u"[GETATTR] Path {}".format(path))
         if path not in self.attr_cache.keys():
             try:
                 if path not in self.file_cache.keys():
@@ -68,7 +71,8 @@ class HTTPfs(Operations):
 
 
 def main(mountpoint, root):
-    root = strip(root, "/")
+    root = root.strip("/")
+    root = six.text_type(root)
     FUSE(HTTPfs(root), mountpoint, nothreads=True, foreground=True, max_read=10485760, max_write=10485760)
 
 
