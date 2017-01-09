@@ -21,7 +21,7 @@ git clone https://github.com/Kurocon/HTTPfs.git
 cd HTTPfs
 
 # Make a symbolic link to /usr/sbin/
-sudo ln -s httpfs.py /usr/sbin/mount.httpfs
+sudo ln -s `pwd`/httpfs.py /usr/sbin/mount.httpfs
 ```
 
 You should now be able to use the filesystem in the following ways:
