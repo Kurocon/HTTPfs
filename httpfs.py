@@ -84,10 +84,11 @@ if __name__ == '__main__':
     p.add_argument("--debug", action="store_true", help="Enable debug logging")
     p.add_argument("--nothreads", action="store_true", help="Disable fuse threads")
     p.add_argument("--no_ssl_verify", action="store_true", help="Disable SSL Verification")
-    p.add_argument("--allow_other", action="store_true", help="Allow users other than the one running the command"
+    p.add_argument("--allow_other", action="store_true", help="Allow users other than the one running the command "
                                                               "to access the directory.")
 
-    p.add_argument("-o", type=str, default="", help="Mount-style variant of the above options (e.g. -o debug,allow_other")
+    p.add_argument("-o", "--options", type=str, default="", help="Mount-style variant of the above options "
+                                                                 "(e.g. -o debug,allow_other")
 
     args = vars(p.parse_args(sys.argv[1:]))
 
