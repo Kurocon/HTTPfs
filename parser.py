@@ -1,7 +1,6 @@
 import logging
 import six
 import time
-import requests
 
 from errno import ENOENT
 from stat import S_IFDIR, S_IFREG

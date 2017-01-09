@@ -1,3 +1,4 @@
 requests
 fusepy
 beautifulsoup4
+six

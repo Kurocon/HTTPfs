@@ -5,10 +5,29 @@ HTTPFS is a fuse filesystem capable of mounting a typical Apache directory index
 
 Requirements
 ---
-Python dependencies:
+Python dependencies (works on both Python 2 and 3):
 - requests
 - fusepy
 - beautifulsoup4
+- six
+
+Usage
+---
+```
+usage: httpfs.py [-h] [--foreground] [--debug] [--nothreads] [--no_ssl_verify]
+                 http_resource mountpoint
+
+positional arguments:
+  http_resource    Target web directory index
+  mountpoint       Target directory
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --foreground     Do not fork into background (default: False)
+  --debug          Enable debug logging (default: False)
+  --nothreads      Disable fuse threads (default: False)
+  --no_ssl_verify  Disable SSL Verification (default: False)
+```
 
 Registering mount command
 ---

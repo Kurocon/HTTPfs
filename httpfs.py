@@ -1,23 +1,26 @@
 #!/usr/bin/env python
 import sys
 import logging
+
+import argparse
 import requests
 import six
-
-from logging.config import fileConfig
 
 from fuse import FUSE, Operations, FuseOSError, ENOENT
 from parser import Directory, File
 
 
 class HTTPfs(Operations):
-    def __init__(self, root):
+    def __init__(self, root, verify_ssl=True):
         self.root = root
         self.log = logging.getLogger(__name__)
         self.readdir_cache = {}
         self.attr_cache = {}
         self.file_cache = {}
         self.session = requests.Session()
+        if not verify_ssl:
+            self.log.warn("Disabling SSL verification!")
+            self.session.verify = False
 
     def readdir(self, path, fh):
         path = path.strip("/")
@@ -70,12 +73,30 @@ class HTTPfs(Operations):
     statfs = None
 
 
-def main(mountpoint, root):
-    root = root.strip("/")
-    root = six.text_type(root)
-    FUSE(HTTPfs(root), mountpoint, nothreads=True, foreground=True, max_read=10485760, max_write=10485760)
-
-
 if __name__ == '__main__':
-    fileConfig('logging.conf')
-    main(sys.argv[2], sys.argv[1])
+    FORMAT = "%(created)f - %(thread)d (%(name)s) - [%(levelname)s] %(message)s"
+    logging.basicConfig(level=logging.INFO, format=FORMAT)
+
+    p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    p.add_argument("http_resource", help="Target web directory index")
+    p.add_argument("mountpoint", help="Target directory")
+    p.add_argument("--foreground", action="store_true", help="Do not fork into background")
+    p.add_argument("--debug", action="store_true", help="Enable debug logging")
+    p.add_argument("--nothreads", action="store_true", help="Disable fuse threads")
+    p.add_argument("--no_ssl_verify", action="store_true", help="Disable SSL Verification")
+
+    args = vars(p.parse_args(sys.argv[1:]))
+
+    fsroot = six.text_type(args.pop("http_resource").strip("/"))
+    mountpoint = args.pop("mountpoint")
+
+    fuse_kwargs = {
+        'nothreads': True if args.pop("nothreads") else False,
+        'foreground': True if args.pop("foreground") else False,
+        'debug': True if args.pop("debug") else False
+    }
+
+    if fuse_kwargs['debug']:
+        logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
+    FUSE(HTTPfs(fsroot, verify_ssl=False if args.pop("no_ssl_verify") else True), mountpoint, **fuse_kwargs)
